@@ -1,0 +1,79 @@
+##################################################
+# MySQL服務環境設定
+#
+# - 伺服器： MySQL 8.4|5.7 (於.env中設定)
+#   - MySQL連線:
+#     - mysql://localhost:3306
+#   - 管理程式：
+#     - Adminer: http://localhost:8080
+#     - phpMyAdmin: http://localhost:8081
+# - 使用 .env 環境變數檔
+#   - 可調整 COMPOSE_PROJECT_NAME 變數，以指定專案名稱
+#     - 當有多個 docker compose 中的容器需要使用相同的 Network, Volume，需在同一個專案中
+# 
+##################################################
+
+# Docker Compose版本
+version: "3"
+
+# 伺服器設定
+services:
+  # MySQL伺服器設定
+  mysql_dev:
+    container_name: mysql_dev
+    image: ${MYSQL_VERSION}
+    restart: unless-stopped
+    # 埠號開放
+    expose:
+      - "3306"
+    ports:
+      - "3306:3306"
+    volumes:
+      - "sql_data:/var/lib/mysql"
+      - "./docker/mysql/my.cnf:/etc/my.cnf"
+      - "./docker/mysql/bashrc:/root/.bashrc"
+      - ".:/workspace"
+    # 環境變數設定 - 從.env檔案讀取
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PWD}
+      MYSQL_ROOT_HOST: "%"
+    networks:
+      database:
+
+  # Adminer伺服器建構
+  adminer_dev:
+    container_name: adminer_dev
+    image: adminer
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: mysql_dev
+    networks:
+      database:
+    depends_on:
+      - mysql_dev
+
+  # PhpMyAdmin伺服器建構
+  phpmyadmin_dev:
+    container_name: phpmyadmin_dev
+    image: "phpmyadmin/phpmyadmin"
+    ports:
+      - "8081:80"
+    volumes:
+      - "./docker/phpmyadmin/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php"
+    environment:
+      PMA_HOST: mysql_dev
+      PMA_CONFIG: "/etc/phpmyadmin/config.user.inc.php"
+    networks:
+      database:
+    depends_on:
+      - mysql_dev
+
+# Volumn設定
+volumes:
+  sql_data:
+
+# Network設定
+networks:
+  database:
+    driver: bridge

@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "mhutchie.git-graph", // Git Graph
+        "eamodio.gitlens", // GitLens
+        "ms-azuretools.vscode-docker", // Docker
+        "yzhang.markdown-all-in-one", // Markdown All in One
+        "ms-vscode-remote.remote-ssh" // Remote - SSH
+    ]
+}
